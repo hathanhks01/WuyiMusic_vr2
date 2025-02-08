@@ -1,0 +1,66 @@
+/* Fly-in effect for the image */
+@keyframes flyin {
+    from {
+        transform: translateX(100%); /* Start from the right outside of the screen */
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0); /* End at its original position */
+        opacity: 1;
+    }
+}
+
+.animate-flyin {
+    animation: flyin 1.5s ease-out;
+}
+
+/* Typing effect for the text */
+@keyframes typing {
+    0% {
+        width: 0;
+    }
+    100% {
+        width: 100%;
+    }
+}
+
+.animate-type {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 2px solid; /* Adjust thickness here */
+    animation: typing 3s steps(40) 1s forwards, blink 0.75s step-end infinite;
+}
+
+/* Blink effect for typing cursor */
+@keyframes blink {
+    50% {
+        border-color: transparent;
+    }
+}
+.shadow-custom {
+    box-shadow: 0px 0px 60px 2px rgba(255, 223, 0, 0.6);
+}
+/* Home.css */
+.nav-link {
+    position: relative;
+    text-decoration: none; /* Remove default underline */
+    color: white; /* Default text color */
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -5px; /* Adjust as needed */
+    height: 2px; /* Thickness of the underline */
+    background-color: yellow; /* Color of the underline */
+    transform: scaleX(0); /* Initially hide the underline */
+    transition: transform 0.3s ease; /* Animation for the underline */
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+    transform: scaleX(1); /* Show the underline on hover or when active */
+}
