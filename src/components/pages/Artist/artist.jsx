@@ -5,9 +5,9 @@ import { MainContentsArtist } from './mainContentsArtist';
 
 const Artist = () => {
     return (
-        <div className="h-screen  bg-[#111727]">
+        <div className="h-screen bg-[#111727]">
             <ArtistNav className="absolute top-0 left-0 w-full h-16  bg-[#111727]" />
-            <MainContentsArtist>
+            <MainContentsArtist className="overflow-y-auto bg-[#111727]">
                 <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/profile" element={<Profile />} />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { Button } from "antd";
 import { UserOutlined } from '@ant-design/icons';
@@ -8,6 +9,7 @@ import Register from '../pages/Auth/Register';
 import TrackService from '../../Services/TrackService';
 
 const Header = () => {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRegisterMode, setIsRegisterMode] = useState(false);
@@ -37,9 +39,10 @@ const Header = () => {
       setSearchResults({ tracks: [], artists: [] });
       return;
     }
-  
+
     try {
       const response = await TrackService.searchTerm(search);
+      navigate('/searchComponenet', { state: { searchResults: response } });
       setSearchResults(response);
     } catch (error) {
       console.error('Error during search:', error);
@@ -64,11 +67,50 @@ const Header = () => {
 
   const openModal = () => {
     setIsModalOpen(true);
-    setIsRegisterMode(false); // Reset to login mode when opening the modal
+    setIsRegisterMode(false);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+  };
+
+  const renderSearchResults = () => {
+    if (!search) return null;
+
+    return (
+      <div className="absolute top-full mt-2 w-full bg-gray-800 rounded-lg shadow-lg z-50">
+        {searchResults.tracks.length > 0 && (
+          <div className="p-2">
+            <h3 className="text-white font-bold mb-2">Tracks</h3>
+            {searchResults.tracks.map((track, index) => (
+              <div 
+                key={`track-${track.trackId || index}`} 
+                className="text-white hover:bg-gray-700 p-2 rounded cursor-pointer"
+              >
+                {track.title}
+              </div>
+            ))}
+          </div>
+        )}
+        {searchResults.artists.length > 0 && (
+          <div className="p-2">
+            <h3 className="text-white font-bold mb-2">Artists</h3>
+            {searchResults.artists.map((artist, index) => (
+              <div 
+                key={`artist-${artist.artistId || index}`} 
+                className="text-white hover:bg-gray-700 p-2 rounded cursor-pointer"
+              >
+                {artist.name}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
-    <div className="p-4 flex justify-between fixed top-0 left-0 w-full z-[9999] bg-black">
+    <div className="p-2 flex justify-between fixed top-0 left-0 w-full z-[9999] bg-black">
       <div className="flex pr-3 items-center gap-8">
         <Link to="/" className="text-[30px] text-red-700 font-bold">WuyiMusic</Link>
         <div className="relative flex items-center">
@@ -77,32 +119,9 @@ const Header = () => {
             placeholder="Bạn muốn phát nội dung gì"
             className="bg-gray-800 border border-gray-300 h-8 p-2 w-96 rounded-3xl text-white"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={handleSearchChange}
           />
-          {search && (
-            <div className="absolute top-full mt-2 w-full bg-gray-800 rounded-lg shadow-lg z-50">
-              {searchResults.tracks.length > 0 && (
-                <div className="p-2">
-                  <h3 className="text-white font-bold mb-2">Tracks</h3>
-                  {searchResults.tracks.map((track) => (
-                    <div key={track.trackId} className="text-white hover:bg-gray-700 p-2 rounded">
-                      {track.title}
-                    </div>
-                  ))}
-                </div>
-              )}
-              {searchResults.artists.length > 0 && (
-                <div className="p-2">
-                  <h3 className="text-white font-bold mb-2">Artists</h3>
-                  {searchResults.artists.map((artist) => (
-                    <div key={artist.artistId} className="text-white hover:bg-gray-700 p-2 rounded">
-                      {artist.name}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+          {renderSearchResults()}
         </div>
       </div>
       <div className="flex items-center space-x-5">
@@ -124,7 +143,7 @@ const Header = () => {
               className="hover:text-red-700 text-white font-bold"
               type="link"
               icon={<UserOutlined />}
-              onClick={openModal} // Use openModal to open the modal
+              onClick={openModal}
             >
               Đăng nhập
             </Button>
@@ -132,7 +151,6 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Modal Login/Register */}
       {isModalOpen && (
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
           <div className={`relative z-10 bg-white p-8 rounded-lg shadow-md w-full max-w-md ${isRegisterMode ? 'flip' : ''}`}>
@@ -162,8 +180,9 @@ const Header = () => {
 Header.propTypes = {
   onSearch: PropTypes.func.isRequired,
 };
+
 Header.defaultProps = {
-  onSearch: () => {}, // Một function rỗng để tránh lỗi khi không truyền prop
+  onSearch: () => {},
 };
 
 export default Header;

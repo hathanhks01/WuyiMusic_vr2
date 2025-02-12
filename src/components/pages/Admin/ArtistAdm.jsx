@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Table, Button, Modal, Form, Input, message } from "antd";
 import { EditOutlined, PlusOutlined } from "@ant-design/icons";
-import ArtistService from "../../../Services/ArtistService";
+import ArtistService from "../../../Services/ArtistServices";
 
 const ArtistAdm = () => {
     const [artists, setArtists] = useState([]);
@@ -15,7 +15,7 @@ const ArtistAdm = () => {
     const fetchArtists = async () => {
         setLoading(true);
         try {
-            const data = await ArtistService.getAllArtist();
+            const data = await ArtistService.GetAllArtist();
             setArtists(data);
             message.success("Lấy danh sách nghệ sĩ thành công");
         } catch (error) {

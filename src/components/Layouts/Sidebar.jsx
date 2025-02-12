@@ -11,7 +11,7 @@ const Sidebar = () => {
   };
 
   return (
-    <div className='fixed pt-3 top-16 left-0 w-1/5 h-full bg-[#111a31] overflow-y-auto'>
+    <div className='fixed pt-1 top-14 left-0 w-1/5 h-full bg-[#111a31] overflow-y-auto'>
       <ul>
         <li className="mb-2">
           <NavLink
@@ -23,7 +23,7 @@ const Sidebar = () => {
             Khám Phá
           </NavLink>
         </li>
-        <li className="mb-2">
+        {/* <li className="mb-2">
           <NavLink
             to="/Ranking"
             className={({ isActive }) =>
@@ -32,7 +32,7 @@ const Sidebar = () => {
           >
             Chart
           </NavLink>
-        </li>
+        </li> */}
         <li className="mb-2">
           <button
             onClick={toggleLibrary}

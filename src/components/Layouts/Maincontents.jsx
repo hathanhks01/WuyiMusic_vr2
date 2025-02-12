@@ -5,26 +5,27 @@ import { Routes, Route } from 'react-router-dom';
 import Discover from '../pages/User/discover';
 import LikedList from '../pages/User/LikedList';
 import Ranking from '../pages/User/TrackRankingChart';
-// Thêm các route khác vào đây...
+import SearchComponent from '../pages/User/SearchComponent';
 
 const MainContent = () => {
     return (
-        <div className="main-content fixed pt-3 top-16 bottom-16 right-0 w-4/5 h-full bg-[#111727]  overflow-y-auto text-white">
+        <div className="main-content fixed pt-1 top-14 bottom-16 right-0 w-4/5 h-full bg-[#111727]  overflow-y-auto text-white">
             <Routes>
-            <Route path="/" element={<Discover />} /> {/* Trang khởi đầu là Discover */}
+                <Route path="/" element={<Discover />} /> {/* Trang khởi đầu là Discover */}
                 <Route path="/Discover" element={<Discover />} />
                 <Route path="/Favorites" element={<LikedList />} />
                 <Route path="/Ranking" element={<Ranking />} />
+                <Route path='/searchComponenet' element={<SearchComponent />} />           
             </Routes>
             <style>
                 {`
                     .main-content::-webkit-scrollbar {
-                        display: none; /* Ẩn thanh cuộn */
+                        display: none; 
                     }
 
                     .main-content {
-                        -ms-overflow-style: none;  /* Ẩn thanh cuộn cho IE/Edge */
-                        scrollbar-width: none; /* Ẩn thanh cuộn cho Firefox */
+                        -ms-overflow-style: none;  
+                        scrollbar-width: none; 
                     }
                 `}
             </style>

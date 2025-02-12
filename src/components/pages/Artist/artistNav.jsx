@@ -40,12 +40,12 @@ const ArtistNav = () => {
           >
             Upload
           </Link>
-          <Link 
+          {/* <Link 
             to="/artist/tracks" 
             className={`${isActive('/artist/tracks')} hover:text-blue-500`}
           >
             My Track
-          </Link>
+          </Link> */}
         </div>
       </div>
     </nav>

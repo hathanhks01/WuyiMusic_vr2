@@ -26,18 +26,13 @@ const Discover = () => {
             setIsLoading(false);
         }
     };
-    
-    
 
 
-    useEffect(() => {
-        fetchTrack();
-    }, []);
 
-    useEffect(() => {
+
         const fetchArtist = async () => {
             try {
-                const response = await ArtistServices.GetAllArtist();
+                const response = await ArtistServices.GetRamdomArtist();
                 console.log("Dữ liệu nghệ sĩ là:", response);
                 setArtistData(response);
                 startTypingEffect(response.name);
@@ -45,10 +40,14 @@ const Discover = () => {
                 setError("Có lỗi xảy ra khi lấy dữ liệu nghệ sĩ");
                 console.error("Error fetching artist data:", err);
             }
-        };
+        }; 
 
+    useEffect(() => {
+        fetchTrack();
         fetchArtist();
     }, []);
+
+ 
     return (
         <div className="min-h-screen mt-6 mb-16 bg-[#111727]">
             <div className="container mx-auto px-4">
@@ -73,6 +72,8 @@ const Discover = () => {
                                         src={track.trackImage}
                                         altnp={track.trackName || 'Track Image'}
                                         className="w-full h-full rounded-md"
+                                        onContextMenu={(e) => e.preventDefault()}
+                                        draggable="false"
                                     />
                                 </div>
                                 <div className="flex-1 text-white">
@@ -111,22 +112,31 @@ const Discover = () => {
             <div className="container mx-auto px-4 pt-3">
                 <div className="flex justify-between items-center mb-4">
                     <span className="text-white font-semibold">Nghệ sĩ</span>
+                    <a className="text-white/80 font-semibold hover:text-white" href="/#">
+                        LÀM MỚI
+                    </a>
                 </div>
-                <div className="flex justify-between items-center overflow-x-auto">
+                {/* Sử dụng flex + overflow-x-auto để tránh bị bóp méo */}
+                <div className="flex gap-8 px-7 overflow-x-auto pb-2 scrollbar-hide">
                     {artistData.map((artist) => (
-                        <div key={artist.artistId} className="flex flex-col items-center mx-2">
+                        <div key={artist.artistId} className="flex flex-col items-center min-w-[10rem]">
                             <img
                                 src={artist.artistImage || ''}
                                 alt={artist.name || 'Artist'}
-                                className="object-cover w-28 h-28 rounded-full"
+                                className="object-cover rounded-full"
+                                style={{ width: '10rem', height: '10rem' }}
+                                onContextMenu={(e) => e.preventDefault()}
+                                draggable="false"
                             />
-                            <span className="text-white mt-2 text-center">
-                                {artist.name}
-                            </span>
+                            <span className="text-white mt-2 text-center">{artist.name}</span>
                         </div>
                     ))}
                 </div>
+
             </div>
+
+
+
 
         </div>
     );

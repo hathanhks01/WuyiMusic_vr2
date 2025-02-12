@@ -46,7 +46,9 @@ const ArtistServices = {
 
       const formData = new FormData();
       formData.append('Name', artistDto.name);
+      formData.append('Name', artistDto.name);
       formData.append('Bio', artistDto.bio);
+      formData.append('userId', userId);
       if (imageFile) {
         formData.append('ArtistImageFile', new File([imageFile], 'artist-image.jpg', { type: 'image/jpeg' }));
       }
@@ -63,7 +65,15 @@ const ArtistServices = {
       console.error('Có lỗi xảy ra khi tạo nghệ sĩ:', error);
       throw error;
     }
-  }
+  },  GetRamdomArtist: async () => {
+    try {
+      const response = await http.get('/Artist/random'); // Thêm await
+      return response.data;
+    } catch (error) {
+      console.error('Có lỗi xảy ra khi lấy thông tin nghệ sĩ:', error);
+      throw error; 
+    }
+  },
   
 };
 
