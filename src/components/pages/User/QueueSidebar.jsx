@@ -50,8 +50,8 @@ const QueueSidebar = ({ isOpen, onClose }) => {
                   className="w-12 h-12 object-cover rounded"
                 />
                 <div>
-                  <p className="font-medium">{currentTrack.title}</p>
-                  <p className="text-sm text-zinc-400">{currentTrack.artist}</p>
+                  <p className="font-small">{currentTrack.title}</p>
+                  <p className="text-sm text-zinc-400 text-left">{currentTrack.artist?.name || ""}</p>
                 </div>
               </div>
             )}
@@ -72,8 +72,8 @@ const QueueSidebar = ({ isOpen, onClose }) => {
                   className="w-12 h-12 object-cover rounded"
                 />
                 <div>
-                  <p className="font-medium">{track.title}</p>
-                  <p className="text-sm text-zinc-400">{track.artist}</p>
+                  <p className="font-small">{track.title}</p>
+                  <p className="text-sm text-zinc-400 text-left">{track.artist?.name || ""}</p>
                 </div>
               </div>
             ))}
@@ -100,8 +100,8 @@ const QueueSidebar = ({ isOpen, onClose }) => {
                     className="w-12 h-12 object-cover rounded"
                   />
                   <div>
-                    <p className="font-medium">{track.title}</p>
-                    <p className="text-sm text-zinc-400">{track.artist}</p>
+                    <p className="font-small">{track.title}</p>
+                    <p className="text-sm text-zinc-400 text-left">{track.artist?.name || ""}</p>
                   </div>
                 </div>
                 <button

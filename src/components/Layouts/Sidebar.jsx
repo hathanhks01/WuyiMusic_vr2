@@ -23,7 +23,7 @@ const Sidebar = () => {
             Khám Phá
           </NavLink>
         </li>
-        {/* <li className="mb-2">
+        <li className="mb-2">
           <NavLink
             to="/Ranking"
             className={({ isActive }) =>
@@ -32,7 +32,7 @@ const Sidebar = () => {
           >
             Chart
           </NavLink>
-        </li> */}
+        </li>
         <li className="mb-2">
           <button
             onClick={toggleLibrary}

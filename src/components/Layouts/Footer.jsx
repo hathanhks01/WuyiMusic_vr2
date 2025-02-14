@@ -55,20 +55,23 @@ const Footer = () => {
     ? JSON.parse(localStorage.getItem('user')).userId
     : null;
 
-  useEffect(() => {
-    const checkIfTrackFavorited = async () => {
-      if (currentTrack && userId) {
-        try {
-          const response = await axios.get(`https://localhost:7078/api/FavoriteTracks/is-favorited?userId=${userId}&trackId=${currentTrack.trackId}`);
-          setIsLiked(response.data.isFavorited);
-        } catch (error) {
-          console.error("Error checking if track is favorited:", error);
+    useEffect(() => {
+      const checkIfTrackFavorited = async () => {
+        if (currentTrack && userId) {
+          try {
+            const response = await axios.get(
+              `https://localhost:7078/api/FavoriteTracks/is-favorited?userId=${userId}&trackId=${currentTrack.trackId}`
+            );
+            setIsLiked(response.data.isFavorited);
+          } catch (error) {
+            console.error("Error checking if track is favorited:", error);
+          }
         }
-      }
-    };
-
-    checkIfTrackFavorited();
-  }, [currentTrack, userId]);
+      };
+    
+      checkIfTrackFavorited();
+    }, [currentTrack, userId]);
+    
 
   const handleLikeToggle = async () => {
     if (!userId || !currentTrack) return;
@@ -108,18 +111,25 @@ const Footer = () => {
   // Lắng nghe sự kiện phím
   useEffect(() => {
     const handleKeyDown = (event) => {
+      // Nếu sự kiện được kích hoạt trong các phần tử nhập liệu, bỏ qua xử lý
+      const tagName = event.target.tagName.toUpperCase();
+      if (tagName === 'INPUT' || tagName === 'TEXTAREA' || event.target.isContentEditable) {
+        return;
+      }
+      
       if (event.code === 'Space') {
         event.preventDefault(); // Ngăn chặn hành vi mặc định của phím Space
         playPause();
       }
     };
-
+  
     window.addEventListener('keydown', handleKeyDown);
-
+  
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [playPause]);
+  
 
   return (
     <div className='w-full h-24 bg-black text-white text-center fixed bottom-0'>
@@ -135,7 +145,7 @@ const Footer = () => {
           </div>
           <div className="flex flex-col">
             <span>{currentTrack?.title || " "}</span>
-            <span className='text-xs text-white/80'>{currentTrack?.artist || ""}</span>
+            <span className='text-xs text-white/80'>{currentTrack?.artist?.name || ""}</span>
           </div>
           <button
             onClick={handleLikeToggle}

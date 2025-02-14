@@ -105,7 +105,7 @@ const ArtistAdm = () => {
     ];
 
     return (
-        <div className="artist-management w-full">
+        <div className="artist-management my-2 w-full">
             <h2>Quản lý Nghệ Sĩ</h2>
             <Button
                 type="primary"
