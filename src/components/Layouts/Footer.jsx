@@ -132,7 +132,7 @@ const Footer = () => {
   
 
   return (
-    <div className='w-full h-24 bg-black text-white text-center fixed bottom-0'>
+    <div className='w-full h-22 bg-black text-white text-center fixed bottom-0'>
       <div className="flex w-full h-full">
         {/* Track Info Section */}
         <div className="flex-1 flex items-center justify-start">

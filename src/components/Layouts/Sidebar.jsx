@@ -23,16 +23,7 @@ const Sidebar = () => {
             Khám Phá
           </NavLink>
         </li>
-        <li className="mb-2">
-          <NavLink
-            to="/Ranking"
-            className={({ isActive }) =>
-              `block p-2 ${isActive ? 'bg-white/20 text-white' : 'text-white/80 hover:bg-white/20 hover:text-white'}`
-            }
-          >
-            Chart
-          </NavLink>
-        </li>
+   
         <li className="mb-2">
           <button
             onClick={toggleLibrary}

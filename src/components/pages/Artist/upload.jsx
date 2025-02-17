@@ -49,7 +49,7 @@ export default function Upload() {
         }
       }, Math.max(50, Math.min(500, fileSize / 1000000))); // Adjust interval based on file size
 
-      await TrackService.addTrack(formData);
+      await TrackService.addTrackForArtist(formData);
       clearInterval(progressIntervalRef.current);
       setProgress(100);
       alert("Track uploaded successfully!");

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Modal, Form, Input, message } from "antd";
+import { Table, Button, Modal, Form, Input, message, ConfigProvider, theme } from "antd";
 import { EditOutlined, PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import GenreServices from "../../../Services/GenreServices";
 
@@ -12,7 +12,6 @@ const Genre = () => {
     const [form] = Form.useForm();
     const pageSize = 10;
 
-    // Fetch genres from the API
     const fetchGenres = async () => {
         setLoading(true);
         try {
@@ -44,12 +43,10 @@ const Genre = () => {
         try {
             const values = await form.validateFields();
             if (editingGenre) {
-                // If we are editing an existing genre
-                await GenreServices.addGenre({ ...values, id: editingGenre.id }); // Update genre
+                await GenreServices.addGenre({ ...values, id: editingGenre.id });
                 message.success("Cập nhật thể loại thành công");
             } else {
-                // If we are adding a new genre
-                await GenreServices.addGenre(values); // Create new genre
+                await GenreServices.addGenre(values);
                 message.success("Thêm mới thể loại thành công");
             }
             setModalVisible(false);
@@ -63,7 +60,7 @@ const Genre = () => {
         try {
             await GenreServices.deleteGenre(id);
             message.success("Xóa thể loại thành công");
-            fetchGenres(); // Refresh the list
+            fetchGenres();
         } catch (error) {
             message.error("Lỗi khi xóa thể loại");
         }
@@ -83,80 +80,126 @@ const Genre = () => {
             dataIndex: "name",
             key: "name",
             align: "center",
+            width: '30%',
         },
         {
             title: "Mô Tả",
             dataIndex: "description",
             key: "description",
             align: "center",
+            width: '40%',
         },
         {
             title: "Hành động",
             key: "action",
             render: (_, record) => (
-                <>
-                    <Button type="primary" icon={<EditOutlined />} onClick={() => openModal(record)}>
+                <div className="space-x-2">
+                    <Button 
+                        type="primary" 
+                        icon={<EditOutlined />} 
+                        onClick={() => openModal(record)}
+                        className="bg-blue-500"
+                    >
                         Sửa
                     </Button>
                     <Button
-                        type="danger"
+                        danger
                         icon={<DeleteOutlined />}
-                        style={{ marginLeft: "10px" }}
                         onClick={() => handleDelete(record.id)}
                     >
                         Xóa
                     </Button>
-                </>
+                </div>
             ),
             align: "center",
+            width: '20%',
         },
     ];
 
+    const darkThemeConfig = {
+        algorithm: theme.darkAlgorithm,
+        token: {
+            colorPrimary: '#1db954',
+            colorBgBase: '#111727',
+            colorBgContainer: '#1a1f32',
+            colorBgElevated: '#1a1f32',
+            colorText: '#ffffff',
+            colorBorder: '#2a3042',
+        },
+    };
+
     return (
-        <div className="genre-management my-2 w-full">
-            <h2>Quản lý Thể Loại</h2>
-            <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                style={{ marginBottom: "20px" }}
-                onClick={() => openModal()}
-            >
-                Thêm thể loại mới
-            </Button>
+        <ConfigProvider theme={darkThemeConfig}>
+            <div className="w-full h-full bg-[#111727] text-white">
+                <div className="p-6">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-2xl font-bold">Quản lý Thể Loại</h2>
+                        <Button
+                            type="primary"
+                            icon={<PlusOutlined />}
+                            onClick={() => openModal()}
+                            className="bg-[#1db954] hover:bg-[#1ed760]"
+                        >
+                            Thêm thể loại mới
+                        </Button>
+                    </div>
 
-            <Table
-                columns={columns}
-                dataSource={Array.isArray(genres) ? genres : []} // Ensure genres is an array
-                rowKey="id"
-                loading={loading}
-                pagination={{
-                    current: currentPage,
-                    pageSize: pageSize,
-                    total: genres?.length || 0,
-                    onChange: (page) => setCurrentPage(page),
-                }}
-            />
+                    <div className="w-full overflow-x-auto">
+                        <Table
+                            columns={columns}
+                            dataSource={Array.isArray(genres) ? genres : []}
+                            rowKey="id"
+                            loading={loading}
+                            pagination={{
+                                current: currentPage,
+                                pageSize: pageSize,
+                                total: genres?.length || 0,
+                                onChange: (page) => setCurrentPage(page),
+                            }}
+                            className="w-full"
+                            scroll={{ x: true }}
+                        />
+                    </div>
+                </div>
 
-            <Modal
-                title={editingGenre ? "Cập nhật Thể Loại" : "Thêm mới Thể Loại"}
-                open={modalVisible}
-                onCancel={() => setModalVisible(false)}
-                footer={null}
-            >
-                <Form form={form} layout="vertical" onFinish={handleCreateOrUpdate}>
-                    <Form.Item label="Tên Thể Loại" name="name" rules={[{ required: true, message: "Vui lòng nhập tên thể loại" }]}>
-                        <Input placeholder="Nhập tên thể loại" />
-                    </Form.Item>
-                    <Form.Item label="Mô Tả" name="description">
-                        <Input.TextArea placeholder="Nhập mô tả thể loại" rows={4} />
-                    </Form.Item>
-                    <Form.Item>
-                        <Button onClick={() => setModalVisible(false)}>Hủy</Button>
-                        <Button type="primary" htmlType="submit" style={{ marginLeft: "10px" }}>Lưu</Button>
-                    </Form.Item>
-                </Form>
-            </Modal>
-        </div>
+                <Modal
+                    title={editingGenre ? "Cập nhật Thể Loại" : "Thêm mới Thể Loại"}
+                    open={modalVisible}
+                    onCancel={() => setModalVisible(false)}
+                    footer={null}
+                    className="dark-modal"
+                    width={800}
+                >
+                    <Form form={form} layout="vertical" onFinish={handleCreateOrUpdate} className="w-full">
+                        <Form.Item 
+                            label="Tên Thể Loại" 
+                            name="name" 
+                            rules={[{ required: true, message: "Vui lòng nhập tên thể loại" }]}
+                        >
+                            <Input placeholder="Nhập tên thể loại" />
+                        </Form.Item>
+                        <Form.Item 
+                            label="Mô Tả" 
+                            name="description"
+                        >
+                            <Input.TextArea placeholder="Nhập mô tả thể loại" rows={4} />
+                        </Form.Item>
+                        <Form.Item className="flex justify-end space-x-2">
+                            <Button onClick={() => setModalVisible(false)}>
+                                Hủy
+                            </Button>
+                            <Button 
+                                type="primary" 
+                                htmlType="submit"
+                                className="bg-[#1db954]"
+                            >
+                                Lưu
+                            </Button>
+                        </Form.Item>
+                    </Form>
+                </Modal>
+            </div>
+        </ConfigProvider>
     );
 };
 
