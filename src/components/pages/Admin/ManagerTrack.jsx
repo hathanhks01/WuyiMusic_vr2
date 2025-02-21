@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Modal, Form, Input, message, ConfigProvider, theme, Upload } from "antd";
-import { EditOutlined, PlusOutlined, DeleteOutlined, UploadOutlined } from "@ant-design/icons";
+import { Table, Button, Modal, Form, Input, message, ConfigProvider, theme, Upload ,Select} from "antd";
+import { EditOutlined, PlusOutlined, DeleteOutlined, UploadOutlined, LoadingOutlined } from "@ant-design/icons";
 import TrackService from '../../../Services/TrackService';
+import GenreService from '../../../Services/GenreServices';
 
 const ManagerTrack = () => {
   const [tracks, setTracks] = useState([]);
@@ -10,16 +11,32 @@ const ManagerTrack = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingTrack, setEditingTrack] = useState(null);
   const [fileList, setFileList] = useState([]);
-  const [currentTrackImage, setCurrentTrackImage] = useState('');
+  const [imageFileList, setImageFileList] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [genres, setGenres] = useState([]);
   const [form] = Form.useForm();
   const pageSize = 10;
+
+  useEffect(() => {
+    const fetchGenres = async () => {
+      try {
+        const response = await GenreService.getAllGenres();
+        setGenres(response);
+      } catch (error) {
+        console.error("Failed to fetch genres:", error);
+        message.error("Lỗi khi lấy danh sách thể loại");
+      }
+    };
+    fetchGenres();
+  }, []);
+
 
   const fetchTracks = async () => {
     setLoading(true);
     try {
       const response = await TrackService.GetAllTrack();
       setTracks(response || []);
-      message.success("Lấy danh sách bài hát thành công");
+      message.success("Lấy danh sách bài hát thành công"); 
     } catch (error) {
       message.error("Lỗi khi lấy danh sách bài hát");
     } finally {
@@ -34,58 +51,72 @@ const ManagerTrack = () => {
   const openModal = (record = null) => {
     setModalVisible(true);
     setEditingTrack(record);
+
     if (record) {
       form.setFieldsValue({
         Title: record.title,
-        TrackImage: record.trackImage,
         AlbumId: record.albumId,
       });
-      setCurrentTrackImage(record.trackImage);
+      setImageFileList(record.trackImage ? [{
+        uid: '-1',
+        name: 'current-image',
+        status: 'done',
+        url: record.trackImage,
+      }] : []);
     } else {
       form.resetFields();
-      setCurrentTrackImage('');
-      setFileList([]);
+      setImageFileList([]);
     }
   };
 
+  const imageUploadProps = {
+    listType: "picture-card",
+    maxCount: 1,
+    showUploadList: {
+      showRemoveIcon: true,
+      showPreviewIcon: false,
+    },
+    beforeUpload: (file) => {
+      const isImage = file.type.startsWith('image/');
+      if (!isImage) {
+        message.error('Chỉ chấp nhận file ảnh!');
+        return Upload.LIST_IGNORE;
+      }
+      return true;
+    },
+    onChange: ({ fileList: newFileList }) => {
+      setImageFileList(newFileList);
+    },
+    customRequest: ({ file, onSuccess }) => {
+      setTimeout(() => {
+        onSuccess("ok", file);
+      }, 0);
+    },
+    accept: "image/*",
+  };
+
+
   const handleCreateOrUpdate = async () => {
     try {
+      setSubmitting(true);
       const values = await form.validateFields();
-  
       const formData = new FormData();
-      
-      // Thêm các trường dữ liệu
+
       formData.append('Title', values.Title);
-      if (values.TrackImage) {
-        formData.append('TrackImage', values.TrackImage);
-      }
-      if (values.AlbumId) {
-        formData.append('AlbumId', values.AlbumId);
-      }
-  
-      // Xử lý file audio
-      if (!editingTrack && fileList.length === 0) {
-        message.error('Vui lòng chọn file audio!');
-        return;
-      }
-      
+      formData.append('AlbumId', values.AlbumId || '');
+      formData.append("GenreId", values.GenreId ||''); 
       if (fileList.length > 0) {
         formData.append('File', fileList[0].originFileObj);
       }
-  
-      // Thêm ArtistId
-    //   const userInfo = JSON.parse(localStorage.getItem('user'));
-    //   if (!userInfo?.userId) {
-    //     throw new Error('Không tìm thấy thông tin người dùng');
-    //   }
-    //   formData.append('ArtistId', userInfo.userId);
-  
-      // Debug: Hiển thị các trường trong FormData
-      for (let [key, value] of formData.entries()) {
-        console.log(key, value);
+
+      if (imageFileList.length > 0) {
+        if (imageFileList[0].originFileObj) {
+          formData.append('ImageFile', imageFileList[0].originFileObj);
+        } else if (imageFileList[0].url) {
+          formData.append('CurrentImage', imageFileList[0].url);
+        }
       }
-  
-      // Gọi API
+
       if (editingTrack) {
         await TrackService.updateTrack(editingTrack.trackId, formData);
         message.success("Cập nhật bài hát thành công");
@@ -93,13 +124,16 @@ const ManagerTrack = () => {
         await TrackService.AddTrack(formData);
         message.success("Thêm bài hát thành công");
       }
-  
+
       setModalVisible(false);
       fetchTracks();
       form.resetFields();
       setFileList([]);
+      setImageFileList([]);
     } catch (error) {
-      // Xử lý lỗi...
+      message.error(error.response?.data?.message || "Có lỗi xảy ra");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -127,12 +161,9 @@ const ManagerTrack = () => {
     },
     onChange: (info) => {
       let newFileList = [...info.fileList];
-      
-      // Chỉ giữ file hợp lệ
       newFileList = newFileList
         .filter(file => file.type?.startsWith('audio/'))
-        .slice(-1); // Giới hạn 1 file
-      
+        .slice(-1);
       setFileList(newFileList);
     },
     fileList,
@@ -154,9 +185,9 @@ const ManagerTrack = () => {
       key: "trackImage",
       align: "center",
       render: (trackImage) => (
-        <img 
-          src={trackImage} 
-          alt="Track" 
+        <img
+          src={trackImage}
+          alt="Track"
           style={{ width: '50px', height: '50px', borderRadius: '8px' }}
         />
       ),
@@ -172,6 +203,13 @@ const ManagerTrack = () => {
       dataIndex: "duration",
       key: "duration",
       align: "center",
+    },
+    {
+      title: "Thể Loại",
+      dataIndex: "genre",
+      key: "genre",
+      align: "center",
+      render: (genre) => genre?.name || "Chưa có thể loại",
     },
     {
       title: "Nghệ Sĩ",
@@ -199,9 +237,9 @@ const ManagerTrack = () => {
       key: "action",
       render: (_, record) => (
         <div className="space-x-2">
-          <Button 
-            type="primary" 
-            icon={<EditOutlined />} 
+          <Button
+            type="primary"
+            icon={<EditOutlined />}
             onClick={() => openModal(record)}
             className="bg-blue-500"
           >
@@ -262,7 +300,7 @@ const ManagerTrack = () => {
         />
 
         <Modal
-          title={editingTrack ? "Update Track" : "Add New Track"}
+          title={editingTrack ? "Cập nhật bài hát" : "Thêm bài hát mới"}
           open={modalVisible}
           onCancel={() => setModalVisible(false)}
           footer={null}
@@ -270,58 +308,84 @@ const ManagerTrack = () => {
           width={800}
         >
           <Form form={form} layout="vertical" onFinish={handleCreateOrUpdate}>
-            <Form.Item 
-              label="Track Title" 
-              name="Title" 
-              rules={[{ required: true, message: "Title is required" }]}
+            <Form.Item
+              label="Tên bài hát"
+              name="Title"
+              rules={[{ required: true, message: "Vui lòng nhập tên bài hát" }]}
             >
-              <Input placeholder="Enter track title" />
-            </Form.Item>
-
-            <Form.Item 
-              label="Track Image URL" 
-              name="TrackImage"
-            >
-              <Input 
-                placeholder="Enter image URL"
-                onChange={(e) => setCurrentTrackImage(e.target.value)}
-                addonAfter={currentTrackImage && (
-                  <img 
-                    src={currentTrackImage} 
-                    alt="Preview" 
-                    style={{ width: 50, height: 50, borderRadius: 4 }}
-                  />
-                )}
-              />
+              <Input placeholder="Nhập tên bài hát" />
             </Form.Item>
 
             <Form.Item
-              label="Audio File"
-              required={!editingTrack}
-              help={editingTrack ? "Leave empty to keep existing file" : ""}
+              label="Ảnh bài hát"
+              name="TrackImage"
+              valuePropName="fileList"
+              getValueFromEvent={(e) => e.fileList}
             >
-              <Upload {...uploadProps}>
-                <Button icon={<UploadOutlined />}>Select File</Button>
+              <Upload
+                {...imageUploadProps}
+                fileList={imageFileList}
+              >
+                {imageFileList.length >= 1 ? (
+                  <div className="relative">
+                    <img
+                      src={imageFileList[0].url || URL.createObjectURL(imageFileList[0].originFileObj)}
+                      alt="preview"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                      <PlusOutlined className="text-white text-2xl" />
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <PlusOutlined />
+                    <div style={{ marginTop: 8 }}>Tải lên</div>
+                  </div>
+                )}
               </Upload>
             </Form.Item>
 
-            <Form.Item 
-              label="Album ID" 
+            <Form.Item
+              label="File audio"
+              required={!editingTrack}
+              help={editingTrack ? "Để trống nếu giữ nguyên file cũ" : ""}
+            >
+              <Upload {...uploadProps}>
+                <Button icon={<UploadOutlined />}>Chọn file</Button>
+              </Upload>
+            </Form.Item>
+            <Form.Item
+              label="Thể loại"
+              name="GenreId"
+              rules={[{ required: true, message: "Vui lòng chọn thể loại" }]}
+            >
+              <Select
+                placeholder="Chọn thể loại"
+                options={genres.map(genre => ({
+                  value: genre.id,
+                  label: genre.name
+                }))}
+              />
+            </Form.Item>
+            <Form.Item
+              label="Album ID"
               name="AlbumId"
             >
-              <Input placeholder="Enter album ID (optional)" />
+              <Input placeholder="Nhập ID album (không bắt buộc)" />
             </Form.Item>
 
             <Form.Item className="flex justify-end space-x-2">
               <Button onClick={() => setModalVisible(false)}>
-                Cancel
+                Hủy
               </Button>
-              <Button 
-                type="primary" 
+              <Button
+                type="primary"
                 htmlType="submit"
                 className="bg-[#1db954]"
+                loading={submitting}
               >
-                {editingTrack ? "Update" : "Add"}
+                {editingTrack ? "Cập nhật" : "Thêm mới"}
               </Button>
             </Form.Item>
           </Form>

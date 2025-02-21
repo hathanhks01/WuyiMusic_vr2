@@ -19,7 +19,11 @@ const Login = ({ setIsModalOpen, onLoginSuccess }) => {
         const userInfo = JSON.parse(localStorage.getItem('user'));
         onLoginSuccess(userInfo);
         setIsModalOpen(false);
-        navigate('/discover');
+        if (window.location.pathname.includes('/artist')) {
+          navigate('/artist');
+        } else {
+          navigate('/discover');
+        }
       }
     } catch (error) {
       setError('Tên đăng nhập hoặc mật khẩu không đúng');

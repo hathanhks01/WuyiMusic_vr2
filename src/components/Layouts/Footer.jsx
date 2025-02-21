@@ -55,23 +55,23 @@ const Footer = () => {
     ? JSON.parse(localStorage.getItem('user')).userId
     : null;
 
-    useEffect(() => {
-      const checkIfTrackFavorited = async () => {
-        if (currentTrack && userId) {
-          try {
-            const response = await axios.get(
-              `https://localhost:7078/api/FavoriteTracks/is-favorited?userId=${userId}&trackId=${currentTrack.trackId}`
-            );
-            setIsLiked(response.data.isFavorited);
-          } catch (error) {
-            console.error("Error checking if track is favorited:", error);
-          }
+  useEffect(() => {
+    const checkIfTrackFavorited = async () => {
+      if (currentTrack && userId) {
+        try {
+          const response = await axios.get(
+            `https://localhost:7078/api/FavoriteTracks/is-favorited?userId=${userId}&trackId=${currentTrack.trackId}`
+          );
+          setIsLiked(response.data.isFavorited);
+        } catch (error) {
+          console.error("Error checking if track is favorited:", error);
         }
-      };
-    
-      checkIfTrackFavorited();
-    }, [currentTrack, userId]);
-    
+      }
+    };
+
+    checkIfTrackFavorited();
+  }, [currentTrack, userId]);
+
 
   const handleLikeToggle = async () => {
     if (!userId || !currentTrack) return;
@@ -116,20 +116,20 @@ const Footer = () => {
       if (tagName === 'INPUT' || tagName === 'TEXTAREA' || event.target.isContentEditable) {
         return;
       }
-      
+
       if (event.code === 'Space') {
         event.preventDefault(); // Ngăn chặn hành vi mặc định của phím Space
         playPause();
       }
     };
-  
+
     window.addEventListener('keydown', handleKeyDown);
-  
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [playPause]);
-  
+
 
   return (
     <div className='w-full h-22 bg-black text-white text-center fixed bottom-0'>
@@ -138,7 +138,7 @@ const Footer = () => {
         <div className="flex-1 flex items-center justify-start">
           <div className="w-12 h-12 m-4 overflow-hidden flex items-center">
             <img
-              src={currentTrack?.trackImage || "src/assets/image/miaomiao.jpg"}
+              src={currentTrack?.trackImage || "src/assets/image/wuyimusic.jpg"}
               alt={currentTrack?.title || ""}
               className='w-full h-full object-cover'
             />
@@ -147,20 +147,22 @@ const Footer = () => {
             <span>{currentTrack?.title || " "}</span>
             <span className='text-xs text-white/80'>{currentTrack?.artist?.name || ""}</span>
           </div>
-          <button
-            onClick={handleLikeToggle}
-            className={`p-4 rounded ${isLiked ? 'text-red-500' : 'text-white'}`}
-            title={isLiked ? 'Xóa khỏi thư viện' : 'Thêm vào thư viện'}
-          >
-            {isLiked ? <HeartFilled /> : <HeartOutlined />}
-          </button>
+          {currentTrack && (
+            <button
+              onClick={handleLikeToggle}
+              className={`p-4 rounded ${isLiked ? 'text-red-500' : 'text-white'}`}
+              title={isLiked ? 'Xóa khỏi thư viện' : 'Thêm vào thư viện'}
+            >
+              {isLiked ? <HeartFilled /> : <HeartOutlined />}
+            </button>
+          )}
         </div>
 
         {/* Playback Controls Section */}
         <div className="flex-1 flex items-center justify-center">
           <div className='w-full'>
             <div className="flex justify-center items-center space-x-4">
-            <button
+              <button
                 className="text-xl p-2 text-white/50 hover:text-white hover:scale-105 transition-transform"
               >
                 <FontAwesomeIcon icon={faRepeat} />
@@ -182,7 +184,7 @@ const Footer = () => {
                 <StepForwardOutlined />
               </button>
               <button
-              
+
                 className="text-xl p-2 text-white/50 hover:text-white hover:scale-105 transition-transform"
               >
                 <FontAwesomeIcon icon={faShuffle} />

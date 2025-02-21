@@ -1,20 +1,50 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMusic } from '../PlayerMusicControl/MusicContext';
 import { CloseOutlined } from '@ant-design/icons';
+import QueueServices from '../../../Services/QueueServices';
 
 const QueueSidebar = ({ isOpen, onClose }) => {
   const { 
     currentTrack,
     queue,
     playHistory,
-    playTrackFromQueue,
-    removeFromQueue,
-    playTrack
+    playTrack,
+    setQueue
   } = useMusic();
+
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchQueue = async () => {
+      try {
+        const userId = localStorage.getItem('userId');
+        if (!userId) return;
+
+        const response = await QueueServices.GetQueueByUserId(userId.userId);
+        if (response && response.data) {
+          setQueue(response.data.queueItems || []);
+        }
+      } catch (err) {
+        setError(err);
+        console.error("Error fetching queue data:", err);
+      }
+    };
+
+    if (isOpen) {
+      fetchQueue();
+    }
+  }, [isOpen, setQueue]);
+
+  const handlePlayTrackFromQueue = async (track) => {
+    try {
+      playTrack(track);
+    } catch (error) {
+      console.error("Error playing track from queue:", error);
+    }
+  };
 
   return (
     <>
-      {/* Overlay */}
       {isOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-40"
@@ -22,9 +52,8 @@ const QueueSidebar = ({ isOpen, onClose }) => {
         />
       )}
       
-      {/* Sidebar */}
       <div 
-        className={`fixed right-0 top-0 bottom-24 w-80 bg-zinc-900 text-white shadow-lg transition-transform duration-300 z-50 ${
+        className={`fixed right-0 top-0 bottom-20 w-80 bg-zinc-900 text-white shadow-lg transition-transform duration-300 z-50 ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -85,34 +114,25 @@ const QueueSidebar = ({ isOpen, onClose }) => {
           {/* Up Next Section */}
           <div className="p-4">
             <h3 className="text-sm text-zinc-400 mb-3">Up Next</h3>
-            {queue.map((track) => (
+            {queue.map((queueItem) => (
               <div 
-                key={track.trackId}
+                key={queueItem.trackId}
                 className="flex items-center justify-between mb-3 hover:bg-zinc-800 p-2 rounded group"
               >
                 <div 
                   className="flex items-center space-x-3 cursor-pointer flex-grow"
-                  onClick={() => playTrackFromQueue(track.trackId)}
+                  onClick={() => handlePlayTrackFromQueue(queueItem.track)}
                 >
                   <img 
-                    src={track.trackImage || "src/assets/image/miaomiao.jpg"}
-                    alt={track.title}
+                    src={queueItem.track.trackImage || "src/assets/image/miaomiao.jpg"}
+                    alt={queueItem.track.title}
                     className="w-12 h-12 object-cover rounded"
                   />
                   <div>
-                    <p className="font-small">{track.title}</p>
-                    <p className="text-sm text-zinc-400 text-left">{track.artist?.name || ""}</p>
+                    <p className="font-small">{queueItem.track.title}</p>
+                    <p className="text-sm text-zinc-400 text-left">{queueItem.track.artist?.name || ""}</p>
                   </div>
                 </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeFromQueue(track.trackId);
-                  }}
-                  className="opacity-0 group-hover:opacity-100 p-2 hover:text-red-500 transition-opacity"
-                >
-                  <CloseOutlined />
-                </button>
               </div>
             ))}
             {queue.length === 0 && (

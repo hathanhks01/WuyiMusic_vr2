@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useRef, useEffect } from 'react';
+import QueueServices from '../../../Services/QueueServices';
 
 const MusicContext = createContext(null);
 
@@ -9,8 +10,6 @@ export const MusicProvider = ({ children }) => {
   const [volume, setVolume] = useState(50);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  
-  // Thêm state mới cho queue và history
   const [queue, setQueue] = useState([]);
   const [playHistory, setPlayHistory] = useState([]);
   const [isQueueVisible, setIsQueueVisible] = useState(false);
@@ -33,8 +32,6 @@ export const MusicProvider = ({ children }) => {
       if (currentTrack) {
         addToHistory(currentTrack);
       }
-      console.log("Bài hát hiện tại đã kết thúc:", currentTrack);
-      console.log("Hàng đợi trước khi phát bài tiếp theo:", queue);
       nextTrack();
     };
   
@@ -49,7 +46,7 @@ export const MusicProvider = ({ children }) => {
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [queue]); // Add queue to dependency array
+  }, [queue]);
 
   const loadTrack = (track) => {
     audioRef.current.src = track.filePath;
@@ -57,40 +54,16 @@ export const MusicProvider = ({ children }) => {
     setCurrentTime(0);
   };
 
-  // Thêm functions mới cho queue management
-  const addToQueue = (track) => {
-    setQueue(prevQueue => [...prevQueue, track]);
-  };
-
-  const removeFromQueue = (trackId) => {
-    setQueue(prevQueue => prevQueue.filter(track => track.trackId !== trackId));
-  };
-
-  const clearQueue = () => {
-    setQueue([]);
-  };
-
   const addToHistory = (track) => {
     if (!track) return;
     
     setPlayHistory((prevHistory) => {
       const filteredHistory = prevHistory.filter(
-        (historyTrack) => 
-          historyTrack.trackId !== track.trackId
+        (historyTrack) => historyTrack.trackId !== track.trackId
       );
-            const newHistory = [track, ...filteredHistory];
-            return newHistory.slice(0, 20);
+      const newHistory = [track, ...filteredHistory];
+      return newHistory.slice(0, 20);
     });
-  };
-
-  const playTrackFromQueue = (trackId) => {
-    const trackIndex = queue.findIndex(track => track.trackId === trackId);
-    if (trackIndex !== -1) {
-      const track = queue[trackIndex];
-      // Xóa các bài hát trước bài được chọn khỏi queue
-      setQueue(prevQueue => prevQueue.slice(trackIndex + 1));
-      playTrack(track);
-    }
   };
 
   const playPause = () => {
@@ -105,15 +78,31 @@ export const MusicProvider = ({ children }) => {
     setIsPlaying(!isPlaying);
   };
 
-  const nextTrack = () => {
-    console.log("Hàng đợi trước khi phát bài tiếp theo:", queue);
-   if (queue.length > 0) {
-    const [nextTrack, ...remainingTracks] = queue;
-    setQueue(remainingTracks); // ✅ Cập nhật queue mới
-    playTrack(nextTrack);
-    addRemainingTracksToQueue(tracks.indexOf(nextTrack)); // ✅ Thêm các bài còn lại
-  } else if (tracks.length > 0) {
-      // Fallback to the next track in the tracks array if queue is empty
+  const nextTrack = async () => {
+    if (queue.length > 0) {
+      const [nextQueueItem, ...remainingQueueItems] = queue;
+      if (nextQueueItem && nextQueueItem.track) {
+        // Lấy thông tin track từ queueItem
+        const trackToPlay = nextQueueItem.track;
+        
+        // Cập nhật queue còn lại
+        setQueue(remainingQueueItems);
+  
+        // Cập nhật index và load bài hát
+        const trackIndex = tracks.findIndex(t => t.trackId === trackToPlay.trackId);
+        if (trackIndex !== -1) {
+          setCurrentTrackIndex(trackIndex);
+          
+          // Load và phát nhạc từ filePath
+          audioRef.current.src = trackToPlay.filePath;
+          audioRef.current.load();
+          if (isPlaying) {
+            audioRef.current.play().catch(console.error);
+          }
+        }
+      }
+    } else if (tracks.length > 0) {
+      // Xử lý khi hết queue - giữ nguyên code cũ
       const nextIndex = (currentTrackIndex + 1) % tracks.length;
       setCurrentTrackIndex(nextIndex);
       loadTrack(tracks[nextIndex]);
@@ -122,15 +111,11 @@ export const MusicProvider = ({ children }) => {
       }
     }
   };
-  
-  
 
   const previousTrack = () => {
     if (playHistory.length > 0) {
-      // Lấy bài hát gần nhất từ lịch sử
       const previousTrack = playHistory[0];
       setPlayHistory(prevHistory => prevHistory.slice(1));
-      // Thêm bài hát hiện tại vào đầu queue
       const currentTrack = getCurrentTrack();
       if (currentTrack) {
         setQueue(prevQueue => [currentTrack, ...prevQueue]);
@@ -156,38 +141,36 @@ export const MusicProvider = ({ children }) => {
     audioRef.current.volume = level / 100;
   };
 
-  const addRemainingTracksToQueue = (startIndex) => {
-    const remainingTracks = tracks.slice(startIndex + 1);
-    setQueue(prevQueue => [...prevQueue, ...remainingTracks]);
-  };
   const getCurrentTrack = () => tracks[currentTrackIndex];
 
-  const playTrack = (track) => {
-    const trackIndex = tracks.findIndex((t) => t.trackId === track.trackId);
-    if (trackIndex !== -1) {
-      const currentTrack = getCurrentTrack();
-      if (currentTrack && currentTrack.trackId !== track.trackId) {
-        addToHistory(currentTrack);
+  const playTrack = async (track) => {
+    try {
+      const trackIndex = tracks.findIndex((t) => t.trackId === track.trackId);
+      if (trackIndex !== -1) {
+        const currentTrack = getCurrentTrack();
+        if (currentTrack && currentTrack.trackId !== track.trackId) {
+          addToHistory(currentTrack);
+        }
+
+        // Create new queue using API
+        const userInfo = JSON.parse(localStorage.getItem('user'));
+        const response = await QueueServices.CreateQueue(userInfo.userId, track.trackId);
+        if (response && response.data) {
+          console("dữ liệu queue là " + response)
+          setQueue(response.data.queueItems || []);
+        }
+       
+        
+        setCurrentTrackIndex(trackIndex);
+        audioRef.current.src = track.filePath;
+        audioRef.current.load();
+        audioRef.current
+          .play()
+          .then(() => setIsPlaying(true))
+          .catch((error) => console.error("Error playing track:", error));
       }
-      
-      // Clear existing queue and remove current track from queue and history
-      setQueue(prevQueue => 
-        prevQueue.filter(queueTrack => queueTrack.trackId !== track.trackId)
-      );
-      
-      setPlayHistory(prevHistory => 
-        prevHistory.filter(historyTrack => historyTrack.trackId !== track.trackId)
-      );
-      
-      addRemainingTracksToQueue(trackIndex);
-      
-      setCurrentTrackIndex(trackIndex);
-      audioRef.current.src = track.filePath;
-      audioRef.current.load();
-      audioRef.current
-        .play()
-        .then(() => setIsPlaying(true))
-        .catch((error) => console.error("Error playing track:", error));
+    } catch (error) {
+      console.error("Error creating queue:", error);
     }
   };
 
@@ -210,13 +193,9 @@ export const MusicProvider = ({ children }) => {
       seekTo,
       setVolumeLevel,
       playTrack,
-      // Thêm các giá trị mới
       queue,
+      setQueue,
       playHistory,
-      addToQueue,
-      removeFromQueue,
-      clearQueue,
-      playTrackFromQueue,
       isQueueVisible,
       toggleQueueVisibility
     }}>

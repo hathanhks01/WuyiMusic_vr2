@@ -1,5 +1,5 @@
 import React from 'react';
-import { Profile, Home, ArtistNav, Upload, CreateArtist } from './index'
+import { Profile, Home, ArtistNav, Upload, CreateArtist ,AddAlbum} from './index'
 import { Route, Routes } from 'react-router-dom';
 import { MainContentsArtist } from './mainContentsArtist';
 
@@ -13,6 +13,7 @@ const Artist = () => {
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/Upload" element={<Upload />} />
                     <Route path="/CreateArtist" element={<CreateArtist />} />
+                    <Route path="/AddAlbum" element={<AddAlbum />} />
                 </Routes>
             </MainContentsArtist>
         </div>

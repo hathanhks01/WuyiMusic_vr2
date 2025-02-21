@@ -32,10 +32,11 @@ const TrackService = {
   addTrackForArtist: async (formData) => {
     try {
       const userInfo = JSON.parse(localStorage.getItem('user'));
-        if (!userInfo || !userInfo.userId) {
-            throw new Error('User not found in localStorage');
-        }
-        formData.append('ArtistId', userInfo.userId); 
+      if (!userInfo || !userInfo.userId) {
+        throw new Error('User not found in localStorage');
+      }
+      formData.append('ArtistId', userInfo.userId);
+      
       const response = await http.post('Track/addtrack', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -62,9 +63,7 @@ const TrackService = {
   ,updateTrack: async (trackId, formData) => {
     try {
       const response = await http.put(`Track/UpdateTrack/${trackId}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
       return response.data;
     } catch (error) {

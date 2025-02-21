@@ -3,6 +3,7 @@ import Home from "./Home";
 import ArtistNav from "./ArtistNav";
 import Upload from "./Upload";
 import CreateArtist from "./createArtist";
+import AddAlbum from "./AddAlbum"
 
 
 export {
@@ -10,5 +11,6 @@ export {
     Home,
     ArtistNav,
     Upload,
-    CreateArtist
+    CreateArtist,
+    AddAlbum
 }
