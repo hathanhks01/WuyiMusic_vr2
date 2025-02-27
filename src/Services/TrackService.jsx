@@ -78,7 +78,18 @@ const TrackService = {
       console.error('Error deleting track:', error);
       throw error; 
     }
+  },
+  IncrementListenCount: async (trackId) => {
+    try {
+      const response = await http.get(`Track/IncrementListenCount?trackId=${trackId}`);
+      return response.data;
+    } catch (error) {
+      throw error;  
+    }
+    throw error;
   }
+  
+  
   
 };
 

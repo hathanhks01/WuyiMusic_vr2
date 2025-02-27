@@ -4,7 +4,7 @@ import { EditOutlined, PlusOutlined, DeleteOutlined, UploadOutlined, LoadingOutl
 import TrackService from '../../../Services/TrackService';
 import GenreService from '../../../Services/GenreServices';
 
-const ManagerTrack = () => {
+const TrackManager = () => {
   const [tracks, setTracks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -395,4 +395,4 @@ const ManagerTrack = () => {
   );
 };
 
-export default ManagerTrack;
+export default TrackManager;

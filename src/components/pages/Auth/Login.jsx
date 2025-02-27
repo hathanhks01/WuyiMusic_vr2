@@ -72,12 +72,8 @@ const Login = ({ setIsModalOpen, onLoginSuccess }) => {
         </button>
       </form>
 
-      <div className="mt-4 text-center">
-       
-      </div>
-
       <button
-        onClick={() => setIsModalOpen(false)}  // Đóng modal
+        onClick={() => setIsModalOpen(false)}
         className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
       >
         X

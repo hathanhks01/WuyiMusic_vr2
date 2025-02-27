@@ -1,6 +1,6 @@
 
 import http from "../common/http-common";
-
+import {jwtDecode } from 'jwt-decode';
 class AuthService {
   checkEmail = async (email) => {
     try {
@@ -60,13 +60,7 @@ class AuthService {
     localStorage.removeItem('user');
   }
 
-  getCurrentUser = () => {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      return JSON.parse(userStr);
-    }
-    return null;
-  }
+
 
   getToken = () => {
     return localStorage.getItem('token');
@@ -84,6 +78,23 @@ class AuthService {
     } else {
       return 'Lỗi thiết lập request';
     }
+  }
+  getCurrentUser() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) {
+      // Giải mã token để lấy roles
+      const token = localStorage.getItem('token');
+      if (token) {
+        const decoded = jwtDecode(token);
+        user.roles = decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || [];
+      }
+    }
+    return user;
+  }
+
+  isAdmin() {
+    const user = this.getCurrentUser();
+    return user?.roles?.includes('admin');
   }
 }
 

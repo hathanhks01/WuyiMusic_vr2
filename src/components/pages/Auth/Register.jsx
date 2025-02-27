@@ -8,10 +8,7 @@ const Register = ({ setIsModalOpen, onRegisterSuccess }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Regex for email validation
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-
-  // Password validation criteria
   const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
 
   const handleSubmit = async (e) => {
@@ -19,7 +16,6 @@ const Register = ({ setIsModalOpen, onRegisterSuccess }) => {
     setError('');
     setIsLoading(true);
 
-    // Validation checks
     if (!emailRegex.test(email)) {
       setError('Email không hợp lệ. Vui lòng nhập lại.');
       setIsLoading(false);
@@ -39,7 +35,6 @@ const Register = ({ setIsModalOpen, onRegisterSuccess }) => {
     }
 
     try {
-      // Kiểm tra xem email đã tồn tại hay chưa
       const emailCheckResponse = await authService.checkEmail(email);
       if (!emailCheckResponse.available) {
         setError('Email đã được sử dụng. Vui lòng chọn email khác.');
@@ -47,20 +42,24 @@ const Register = ({ setIsModalOpen, onRegisterSuccess }) => {
         return;
       }
 
-      // Đăng ký người dùng
       const registerResponse = await authService.register(email, username, password);
       if (registerResponse.success) {
-        // Tự động đăng nhập sau khi đăng ký thành công
-        const loginResponse = await authService.login(username, password);
-        if (loginResponse.success) {
-          onRegisterSuccess(); // Gọi callback khi đăng ký thành công
+        try {
+          const loginResponse = await authService.login(username, password);
+          if (loginResponse.token) {
+            localStorage.setItem('token', loginResponse.token);
+            localStorage.setItem('user', JSON.stringify({
+              username: username,
+              email: email
+            }));
+            onRegisterSuccess();
+            setIsModalOpen(false);
+            window.location.reload();
+          }
+        } catch (loginError) {
           setIsModalOpen(false);
-          // Reset form fields
-          setEmail('');
-          setUsername('');
-          setPassword('');
-        } else {
-          setError('Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin.');
+          setError('Đăng ký thành công! Vui lòng đăng nhập.');
+          onRegisterSuccess();
         }
       }
     } catch (error) {

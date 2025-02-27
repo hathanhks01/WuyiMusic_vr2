@@ -9,6 +9,22 @@ const QueueServices = {
           currentTrackId
         }
       });
+      console.log("CreateQueue response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating queue:", error);
+      throw error;
+    }
+  },
+  CreateQueueFromAlbumAsync: async (userId, albumId) => {
+    try {
+      const response = await http.get(`/Queue/CreateQueueFromAlbumAsync`, {
+        params: {
+          userId,
+          albumId
+        }
+      });
+      console.log("CreateQueue response:", response.data);
       return response.data;
     } catch (error) {
       console.error("Error creating queue:", error);
@@ -23,6 +39,7 @@ const QueueServices = {
           userId
         }
       });
+      console.log("GetQueueByUserId response:", response.data);
       return response.data;
     } catch (error) {
       console.error("Error fetching queue:", error);

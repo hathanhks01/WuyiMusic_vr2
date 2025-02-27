@@ -3,7 +3,7 @@ import { Table, Button, Modal, Form, Input, message, ConfigProvider, theme } fro
 import { EditOutlined, PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import GenreServices from "../../../Services/GenreServices";
 
-const Genre = () => {
+const GenreManager = () => {
     const [genres, setGenres] = useState([]);
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
@@ -203,4 +203,4 @@ const Genre = () => {
     );
 };
 
-export default Genre;
+export default GenreManager;

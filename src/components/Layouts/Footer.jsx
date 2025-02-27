@@ -60,7 +60,7 @@ const Footer = () => {
       if (currentTrack && userId) {
         try {
           const response = await axios.get(
-            `https://localhost:7078/api/FavoriteTracks/is-favorited?userId=${userId}&trackId=${currentTrack.trackId}`
+            `https://localhost:8080/api/FavoriteTracks/is-favorited?userId=${userId}&trackId=${currentTrack.trackId}`
           );
           setIsLiked(response.data.isFavorited);
         } catch (error) {
@@ -79,12 +79,12 @@ const Footer = () => {
     const trackId = currentTrack.trackId;
     try {
       if (isLiked) {
-        const response = await axios.delete(`https://localhost:7078/api/FavoriteTracks/remove?userId=${userId}&trackId=${trackId}`, {
+        const response = await axios.delete(`https://localhost:8080/api/FavoriteTracks/remove?userId=${userId}&trackId=${trackId}`, {
           data: { userId, trackId }
         });
         console.log(response.data.message);
       } else {
-        const response = await axios.post(`https://localhost:7078/api/FavoriteTracks/add?userId=${userId}&trackId=${trackId}`);
+        const response = await axios.post(`https://localhost:8080/api/FavoriteTracks/add?userId=${userId}&trackId=${trackId}`);
         console.log(response.data.message);
       }
       setIsLiked(!isLiked);
@@ -97,7 +97,7 @@ const Footer = () => {
     const checkIfTrackFavorited = async () => {
       if (currentTrack) {
         try {
-          const response = await axios.get(`https://localhost:7078/api/FavoriteTracks/is-favorited?userId=${userId}&trackId=${currentTrack.trackId}`);
+          const response = await axios.get(`https://localhost:8080/api/FavoriteTracks/is-favorited?userId=${userId}&trackId=${currentTrack.trackId}`);
           setIsLiked(response.data.isFavorited);
         } catch (error) {
           console.error("Error checking if track is favorited:", error);

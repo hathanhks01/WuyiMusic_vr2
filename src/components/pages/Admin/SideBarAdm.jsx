@@ -98,7 +98,7 @@ const SideBarAdm = () => {
                     Thể loại
                   </NavLink>
                 </li>
-                <li className="mb-2">
+                {/* <li className="mb-2">
                   <NavLink
                     to="/admin/rating"
                     className={({ isActive }) =>
@@ -125,7 +125,7 @@ const SideBarAdm = () => {
                   >
                     Suggestion
                   </NavLink>
-                </li>
+                </li> */}
               
               </ul>
             )}

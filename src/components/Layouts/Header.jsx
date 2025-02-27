@@ -8,7 +8,7 @@ import Login from "../pages/Auth/Login";
 import Register from "../pages/Auth/Register";
 import TrackService from "../../Services/TrackService";
 
-const Header = () => {
+const Header = ({ onSearch = () => {} }) => {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -18,19 +18,17 @@ const Header = () => {
     tracks: [],
     artists: [],
   });
-  // State to disable the search effect after selecting a result
   const [disableSearch, setDisableSearch] = useState(false);
 
   const handleArtistClick = () => {
     const token = localStorage.getItem('token');
     if (!token) {
-      // Nếu chưa đăng nhập, mở modal đăng nhập
       setIsModalOpen(true);
       return;
     }
-    // Nếu đã đăng nhập, điều hướng đến trang artist
     navigate('/artist');
   };
+
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -38,16 +36,13 @@ const Header = () => {
     }
   }, []);
 
-
-
-  // When the user types manually, ensure search is enabled.
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
     setDisableSearch(false);
   };
 
   useEffect(() => {
-    if (disableSearch) return; // Skip search if disabled
+    if (disableSearch) return;
 
     const delayDebounceFn = setTimeout(() => {
       performSearch();
@@ -72,11 +67,10 @@ const Header = () => {
     }
   };
 
-  // When a result is clicked, fill the input with the clicked value
   const handleSearchResultClick = (value) => {
     setSearch(value);
     setSearchResults({ tracks: [], artists: [] });
-    setDisableSearch(true); // Prevent immediate re-search on input change
+    setDisableSearch(true);
   };
 
   const handleLoginSuccess = (userInfo) => {
@@ -99,8 +93,6 @@ const Header = () => {
     setIsRegisterMode(false);
   };
 
-
-
   return (
     <div className="p-2 flex justify-between fixed top-0 left-0 w-full z-[9999] bg-black">
       <div className="flex pr-3 items-center gap-8">
@@ -118,7 +110,7 @@ const Header = () => {
         </div>
       </div>
       <div className="flex items-center space-x-5">
-      <button
+        <button
           onClick={handleArtistClick}
           className="hover:text-red-700 text-white"
         >
@@ -188,11 +180,7 @@ const Header = () => {
 };
 
 Header.propTypes = {
-  onSearch: PropTypes.func.isRequired,
-};
-
-Header.defaultProps = {
-  onSearch: () => {},
+  onSearch: PropTypes.func,
 };
 
 export default Header;

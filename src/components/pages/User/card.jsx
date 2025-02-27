@@ -6,9 +6,9 @@ const Card = ({ name, aboutMe, profilePic }) => {
   return (
     <StyledWrapper>
       <div className="card">
-        <button className="mail">
+        <button className="check">
           <svg
-            className="lucide lucide-mail"
+            className="lucide lucide-check-circle"
             strokeLinejoin="round"
             strokeLinecap="round"
             strokeWidth={3}
@@ -19,8 +19,8 @@ const Card = ({ name, aboutMe, profilePic }) => {
             width={24}
             xmlns="http://www.w3.org/2000/svg"
           >
-            <rect rx={2} y={4} x={2} height={16} width={20} />
-            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
           </svg>
         </button>
         <div className="profile-pic">
@@ -55,7 +55,7 @@ const StyledWrapper = styled.div`
     transition: all 0.5s ease-in-out;
   }
 
-  .card .mail {
+  .card .check {
     position: absolute;
     right: 18px;
     top: 13px;
@@ -63,13 +63,13 @@ const StyledWrapper = styled.div`
     border: none;
   }
 
-  .card .mail svg {
-    stroke: #4a90e2;
+  .card .check svg {
+    stroke: #4CAF50; /* Changed to green color */
     stroke-width: 3px;
   }
 
-  .card .mail svg:hover {
-    stroke: #357ABD;
+  .card .check svg:hover {
+    stroke: #388E3C; /* Darker green on hover */
   }
 
   .card .profile-pic {

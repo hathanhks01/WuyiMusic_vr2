@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Modal, Form, Input, message, ConfigProvider, theme } from "antd";
-import { EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { Table, Button, Modal, Form, Input, message, ConfigProvider, theme, Upload } from "antd";
+import { EditOutlined, PlusOutlined, UploadOutlined } from "@ant-design/icons";
 import ArtistService from "../../../Services/ArtistServices";
 
-const ArtistAdm = () => {
+const ArtistManager = () => {
     const [artists, setArtists] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [submitLoading, setSubmitLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [modalVisible, setModalVisible] = useState(false);
     const [editingArtist, setEditingArtist] = useState(null);
+    const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
     const [form] = Form.useForm();
     const pageSize = 10;
 
@@ -17,6 +20,7 @@ const ArtistAdm = () => {
         try {
             const data = await ArtistService.GetAllArtist();
             setArtists(data);
+            console.log(data)
             message.success("Lấy danh sách nghệ sĩ thành công");
         } catch (error) {
             message.error("Lỗi khi lấy danh sách nghệ sĩ");
@@ -32,8 +36,15 @@ const ArtistAdm = () => {
     const openModal = (record = null) => {
         setModalVisible(true);
         setEditingArtist(record);
+        setImageFile(null);
+        setImagePreview(record?.artistImage || null);
+        
         if (record) {
-            form.setFieldsValue({ ...record });
+            form.setFieldsValue({ 
+                name: record.name,
+                bio: record.bio,
+                isVerified: record.isVerified,
+            });
         } else {
             form.resetFields();
         }
@@ -41,20 +52,67 @@ const ArtistAdm = () => {
 
     const handleCreateOrUpdate = async () => {
         try {
+            setSubmitLoading(true);
             const values = await form.validateFields();
+            
+            const formData = new FormData();
+            formData.append('Name', values.name.trim());
+            formData.append('Bio', values.bio?.trim() || '');
+            formData.append('isVerified', values.isVerified?.trim() || 'false');
+            if (imageFile) {
+                formData.append('ArtistImageFile', imageFile);
+            }
+            
             if (editingArtist) {
-                await ArtistService.updateArtist(editingArtist.artistId, values);
+                // Update existing artist
+                await ArtistService.UpdateArtist(editingArtist.artistId, formData);
                 message.success("Cập nhật nghệ sĩ thành công");
             } else {
-                var response = await ArtistService.createArtist(values);
-                console.log(response);
+                // Create new artist
+                await ArtistService.CreateArtistForAdm({
+                    name: values.name,
+                    bio: values.bio,
+                    IsVerified: values.isVerified,
+                    artistImage: imagePreview
+                });
                 message.success("Thêm mới nghệ sĩ thành công");
             }
+            
             setModalVisible(false);
             fetchArtists();
         } catch (error) {
-            message.error("Lỗi khi xử lý dữ liệu");
+            console.error("Error:", error);
+            message.error("Lỗi khi xử lý dữ liệu: " + (error.response?.data || error.message));
+        } finally {
+            setSubmitLoading(false);
         }
+    };
+
+    const handleImageChange = (info) => {
+        if (info.file) {
+            const file = info.file.originFileObj || info.file;
+            setImageFile(file);
+            
+            // Create preview
+            const reader = new FileReader();
+            reader.onload = () => {
+                setImagePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const uploadProps = {
+        beforeUpload: (file) => {
+            const isImage = file.type.startsWith('image/');
+            if (!isImage) {
+                message.error('Chỉ có thể tải lên các file hình ảnh!');
+                return Upload.LIST_IGNORE;
+            }
+            return false; // Prevent auto upload
+        },
+        onChange: handleImageChange,
+        showUploadList: false,
     };
 
     const columns = [
@@ -89,9 +147,17 @@ const ArtistAdm = () => {
                 <img 
                     src={text} 
                     alt="Artist" 
-                    style={{ width: '50px', height: '50px', borderRadius: '8px' }}
+                    style={{ width: '50px', height: '50px', borderRadius: '8px', objectFit: 'cover' }}
                 />
             ) : "N/A",
+            align: "center",
+            width: '15%',
+        },
+        {
+            title: "đã xác thực",
+            dataIndex: "isVerified",
+            key: "isVerified",
+            render: (value) => value ? "Có" : "Không",
             align: "center",
             width: '15%',
         },
@@ -184,18 +250,38 @@ const ArtistAdm = () => {
                         >
                             <Input placeholder="Nhập tên nghệ sĩ" />
                         </Form.Item>
+                        
                         <Form.Item 
                             label="Tiểu sử" 
                             name="bio"
                         >
                             <Input.TextArea placeholder="Nhập tiểu sử nghệ sĩ" rows={4} />
                         </Form.Item>
-                        <Form.Item 
-                            label="Hình ảnh" 
-                            name="artistImage"
-                        >
-                            <Input placeholder="Nhập URL hình ảnh nghệ sĩ" />
+                        
+                        <Form.Item label="Hình ảnh">
+                            <div className="flex items-center gap-4">
+                                <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-gray-600 flex items-center justify-center bg-gray-700">
+                                    {imagePreview ? (
+                                        <img
+                                            src={imagePreview}
+                                            alt="Preview"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="text-gray-400 text-xs text-center">
+                                            Chưa có ảnh
+                                        </div>
+                                    )}
+                                </div>
+                                <Upload {...uploadProps}>
+                                    <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
+                                </Upload>
+                                <span className="text-sm text-gray-400">
+                                    {imageFile ? imageFile.name : "Chọn file hình ảnh"}
+                                </span>
+                            </div>
                         </Form.Item>
+                        
                         <Form.Item className="flex justify-end space-x-2">
                             <Button onClick={() => setModalVisible(false)}>
                                 Hủy
@@ -204,8 +290,9 @@ const ArtistAdm = () => {
                                 type="primary" 
                                 htmlType="submit"
                                 className="bg-[#1db954]"
+                                loading={submitLoading}
                             >
-                                Lưu
+                                {submitLoading ? "Đang xử lý..." : "Lưu"}
                             </Button>
                         </Form.Item>
                     </Form>
@@ -215,4 +302,4 @@ const ArtistAdm = () => {
     );
 };
 
-export default ArtistAdm;
+export default ArtistManager;
