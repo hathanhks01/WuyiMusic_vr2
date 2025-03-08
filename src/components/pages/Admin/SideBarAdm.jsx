@@ -56,6 +56,20 @@ const SideBarAdm = () => {
             </button>
             {isDropdownOpen && (
               <ul className="pl-4">
+                      <li className="mb-2">
+                  <NavLink
+                    to="/admin/UserManager"
+                    className={({ isActive }) =>
+                      `block p-2 ${
+                        isActive
+                          ? 'bg-white/20 text-white'
+                          : 'text-white/80 hover:bg-white/20 hover:text-white'
+                      }`
+                    }
+                  >
+                    User
+                  </NavLink>
+                </li>
                  <li className="mb-2">
                   <NavLink
                     to="/admin/managerTrack"
@@ -98,21 +112,8 @@ const SideBarAdm = () => {
                     Thể loại
                   </NavLink>
                 </li>
+          
                 {/* <li className="mb-2">
-                  <NavLink
-                    to="/admin/rating"
-                    className={({ isActive }) =>
-                      `block p-2 ${
-                        isActive
-                          ? 'bg-white/20 text-white'
-                          : 'text-white/80 hover:bg-white/20 hover:text-white'
-                      }`
-                    }
-                  >
-                    Đánh Giá
-                  </NavLink>
-                </li>
-                <li className="mb-2">
                   <NavLink
                     to="/admin/suggestion"
                     className={({ isActive }) =>

@@ -1,13 +1,17 @@
-import React from 'react';
+import {React, useEffect} from 'react';
 import { Routes, Route } from 'react-router-dom';
 import SideBarAdm from './SideBarAdm';
 import MainContentsAdm from './MainContentsAdm';
 import RatingAdm from './RatingAdm';
 import SuggestionAdm from './SuggestionAdm';
 import GenreManager from './GenreManager';
-import { Statistics, TrackManager, ArtistManager } from './index'
+import { Statistics, TrackManager, ArtistManager, UserManager } from './index'
 
 const Admin = () => {
+    useEffect(() => {
+        document.title = "WuyiMusic - Admin";
+      }, []);
+    
     return (
         <div className="h-screen flex bg-[#111727] overflow-hidden">
             {/* Sidebar 1/5 width */}
@@ -25,6 +29,7 @@ const Admin = () => {
                         <Route path="/artist" element={<ArtistManager />} />
                         <Route path="/Genre" element={<GenreManager />} />
                         <Route path="/ManagerTrack" element={<TrackManager />} />
+                        <Route path="/UserManager" element={<UserManager />} />
                     </Routes>
                 </MainContentsAdm>
             </div>

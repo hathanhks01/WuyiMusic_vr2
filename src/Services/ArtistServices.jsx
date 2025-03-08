@@ -107,6 +107,14 @@ const ArtistServices = {
       console.error('Update artist error:', error);
       throw error;
     }
+  },DeleteAsync: async (id) => {
+    try {
+      const response = await http.delete(`Artist/${id}`);
+      return response.data; 
+    } catch (error) {
+      console.error('Error deleting Artist:', error);
+      throw error; 
+    }
   },
 };
 

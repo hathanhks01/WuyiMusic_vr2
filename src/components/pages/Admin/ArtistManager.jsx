@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Modal, Form, Input, message, ConfigProvider, theme, Upload } from "antd";
-import { EditOutlined, PlusOutlined, UploadOutlined } from "@ant-design/icons";
+import { Table, Button, Modal, Form, Input, message, ConfigProvider, theme, Upload, Switch, Select } from "antd";
+import { EditOutlined, PlusOutlined, UploadOutlined, DeleteOutlined } from "@ant-design/icons";
 import ArtistService from "../../../Services/ArtistServices";
+import ArtistServices from "../../../Services/ArtistServices";
 
 const ArtistManager = () => {
     const [artists, setArtists] = useState([]);
@@ -13,6 +14,9 @@ const ArtistManager = () => {
     const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
     const [form] = Form.useForm();
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterVerified, setFilterVerified] = useState('all');
+
     const pageSize = 10;
 
     const fetchArtists = async () => {
@@ -38,9 +42,9 @@ const ArtistManager = () => {
         setEditingArtist(record);
         setImageFile(null);
         setImagePreview(record?.artistImage || null);
-        
+
         if (record) {
-            form.setFieldsValue({ 
+            form.setFieldsValue({
                 name: record.name,
                 bio: record.bio,
                 isVerified: record.isVerified,
@@ -49,35 +53,41 @@ const ArtistManager = () => {
             form.resetFields();
         }
     };
-
+    const handleDelete = async (id) => {
+        try {
+            await ArtistServices.DeleteAsync(id)
+            message.success("Xóa bài hát thành công");
+            fetchArtists();
+        } catch (error) {
+            message.error("Lỗi khi xóa bài hát");
+        }
+    };
     const handleCreateOrUpdate = async () => {
         try {
             setSubmitLoading(true);
             const values = await form.validateFields();
-            
+
             const formData = new FormData();
             formData.append('Name', values.name.trim());
             formData.append('Bio', values.bio?.trim() || '');
-            formData.append('isVerified', values.isVerified?.trim() || 'false');
+            formData.append('IsVerified', values.isVerified);
             if (imageFile) {
                 formData.append('ArtistImageFile', imageFile);
             }
-            
+
             if (editingArtist) {
-                // Update existing artist
                 await ArtistService.UpdateArtist(editingArtist.artistId, formData);
                 message.success("Cập nhật nghệ sĩ thành công");
             } else {
-                // Create new artist
                 await ArtistService.CreateArtistForAdm({
                     name: values.name,
                     bio: values.bio,
-                    IsVerified: values.isVerified,
+                    isVerified: values.isVerified,
                     artistImage: imagePreview
                 });
                 message.success("Thêm mới nghệ sĩ thành công");
             }
-            
+
             setModalVisible(false);
             fetchArtists();
         } catch (error) {
@@ -87,12 +97,28 @@ const ArtistManager = () => {
             setSubmitLoading(false);
         }
     };
+    const filteredArtists = artists.filter(artist => {
+        const matchesSearch = artist.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesVerification = filterVerified === 'all'
+            ? true
+            : filterVerified === 'verified'
+                ? artist.isVerified
+                : !artist.isVerified;
+        return matchesSearch && matchesVerification;
+    });
+    const handleSearch = (e) => {
+        setSearchTerm(e.target.value);
+    };
+
+    const handleFilterChange = (value) => {
+        setFilterVerified(value);
+    };
 
     const handleImageChange = (info) => {
         if (info.file) {
             const file = info.file.originFileObj || info.file;
             setImageFile(file);
-            
+
             // Create preview
             const reader = new FileReader();
             reader.onload = () => {
@@ -144,9 +170,9 @@ const ArtistManager = () => {
             dataIndex: "artistImage",
             key: "artistImage",
             render: (text) => text ? (
-                <img 
-                    src={text} 
-                    alt="Artist" 
+                <img
+                    src={text}
+                    alt="Artist"
                     style={{ width: '50px', height: '50px', borderRadius: '8px', objectFit: 'cover' }}
                 />
             ) : "N/A",
@@ -173,17 +199,28 @@ const ArtistManager = () => {
             title: "Hành động",
             key: "action",
             render: (_, record) => (
-                <Button 
-                    type="primary" 
-                    icon={<EditOutlined />} 
-                    onClick={() => openModal(record)}
-                    className="bg-blue-500"
-                >
-                    Sửa
-                </Button>
+                <div className="flex gap-2">
+                    <Button
+                        type="primary"
+                        icon={<EditOutlined />}
+                        onClick={() => openModal(record)}
+                        className="bg-blue-500"
+                    >
+                        Sửa
+                    </Button>
+                    <Button
+                        danger
+                        type="primary"
+                        icon={<DeleteOutlined />}
+                        onClick={() => handleDelete(record.artistId)}
+                        className="bg-red-500 hover:bg-red-600"
+                    >
+                        Xóa
+                    </Button>
+                </div>
             ),
             align: "center",
-            width: '15%',
+            width: '20%', // Tăng width để chứa 2 nút
             fixed: 'right',
         },
     ];
@@ -204,34 +241,64 @@ const ArtistManager = () => {
         <ConfigProvider theme={darkThemeConfig}>
             <div className="w-full h-full bg-[#111727] text-white">
                 <div className="p-6">
-                    <div className="flex justify-between items-center mb-6">
+                    <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
                         <h2 className="text-2xl font-bold">Quản lý Nghệ Sĩ</h2>
-                        <Button
-                            type="primary"
-                            icon={<PlusOutlined />}
-                            onClick={() => openModal()}
-                            className="bg-[#1db954] hover:bg-[#1ed760]"
-                        >
-                            Thêm nghệ sĩ mới
-                        </Button>
+                        <div className="flex gap-4 flex-wrap">
+                            <Input
+                                placeholder="Tìm kiếm theo tên"
+                                style={{ width: 200 }}
+                                onChange={handleSearch}
+                                allowClear
+                            />
+                            <Select
+                                defaultValue="all"
+                                style={{ width: 150 }}
+                                onChange={handleFilterChange}
+                                options={[
+                                    { value: 'all', label: 'Tất cả trạng thái' },
+                                    { value: 'verified', label: 'Đã xác thực' },
+                                    { value: 'unverified', label: 'Chưa xác thực' },
+                                ]}
+                            />
+                            <Button
+                                type="primary"
+                                icon={<PlusOutlined />}
+                                onClick={() => openModal()}
+                                className="bg-[#1db954] hover:bg-[#1ed760]"
+                            >
+                                Thêm nghệ sĩ mới
+                            </Button>
+                        </div>
                     </div>
 
                     <div className="w-full overflow-x-auto">
+                        <style>
+                            {`
+      .hide-scrollbar .ant-table-body::-webkit-scrollbar {
+        display: none;
+      }
+      .hide-scrollbar .ant-table-body {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    `}
+                        </style>
+
                         <Table
                             columns={columns}
-                            dataSource={Array.isArray(artists) ? artists : []}
+                            dataSource={filteredArtists}
                             rowKey="artistId"
                             loading={loading}
-                            pagination={{
-                                current: currentPage,
-                                pageSize: pageSize,
-                                total: artists?.length || 0,
-                                onChange: (page) => setCurrentPage(page),
+                            pagination={
+                                false}
+                            className="hide-scrollbar w-full"
+                            scroll={{
+                                x: 1100,
+                                y: 600
                             }}
-                            className="w-full"
-                            scroll={{ x: true }}
                         />
                     </div>
+
                 </div>
 
                 <Modal
@@ -243,21 +310,21 @@ const ArtistManager = () => {
                     width={800}
                 >
                     <Form form={form} layout="vertical" onFinish={handleCreateOrUpdate} className="w-full">
-                        <Form.Item 
-                            label="Tên Nghệ Sĩ" 
-                            name="name" 
+                        <Form.Item
+                            label="Tên Nghệ Sĩ"
+                            name="name"
                             rules={[{ required: true, message: "Vui lòng nhập tên nghệ sĩ" }]}
                         >
                             <Input placeholder="Nhập tên nghệ sĩ" />
                         </Form.Item>
-                        
-                        <Form.Item 
-                            label="Tiểu sử" 
+
+                        <Form.Item
+                            label="Tiểu sử"
                             name="bio"
                         >
                             <Input.TextArea placeholder="Nhập tiểu sử nghệ sĩ" rows={4} />
                         </Form.Item>
-                        
+
                         <Form.Item label="Hình ảnh">
                             <div className="flex items-center gap-4">
                                 <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-gray-600 flex items-center justify-center bg-gray-700">
@@ -281,13 +348,21 @@ const ArtistManager = () => {
                                 </span>
                             </div>
                         </Form.Item>
-                        
+
+                        <Form.Item
+                            label="Đã xác thực"
+                            name="isVerified"
+                            valuePropName="checked"
+                        >
+                            <Switch />
+                        </Form.Item>
+
                         <Form.Item className="flex justify-end space-x-2">
                             <Button onClick={() => setModalVisible(false)}>
                                 Hủy
                             </Button>
-                            <Button 
-                                type="primary" 
+                            <Button
+                                type="primary"
                                 htmlType="submit"
                                 className="bg-[#1db954]"
                                 loading={submitLoading}

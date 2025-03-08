@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
+import {
   faClock,
   faMusic,
   faUser,
@@ -8,10 +8,12 @@ import {
   faSpinner,
   faTimes,
   faCheckCircle,
-  faCompactDisc
+  faCompactDisc,
+  faEllipsisV,
+  faTrash
 } from '@fortawesome/free-solid-svg-icons';
 import ArtistServices from '../../../Services/ArtistServices';
-
+import TrackService from '../../../Services/TrackService';
 const Card = ({ children, className = '' }) => (
   <div className={`rounded-lg border border-gray-700 bg-gray-800 shadow ${className}`}>
     {children}
@@ -68,7 +70,7 @@ const EditForm = ({ artist, onClose }) => {
       <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Chỉnh sửa thông tin</h2>
-          <button 
+          <button
             onClick={() => onClose(false)}
             className="text-gray-400 hover:text-white"
           >
@@ -82,7 +84,7 @@ const EditForm = ({ artist, onClose }) => {
             <input
               type="text"
               value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full p-2 rounded bg-gray-700 focus:ring-2 focus:ring-yellow-500"
               required
             />
@@ -92,7 +94,7 @@ const EditForm = ({ artist, onClose }) => {
             <label className="block mb-2">Tiểu sử</label>
             <textarea
               value={formData.bio}
-              onChange={(e) => setFormData({...formData, bio: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
               className="w-full p-2 rounded bg-gray-700 h-32 focus:ring-2 focus:ring-yellow-500"
               required
             />
@@ -150,6 +152,8 @@ const Profile = () => {
   const [showEdit, setShowEdit] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedSection, setSelectedSection] = useState('tracks');
+  const [deletingTrackId, setDeletingTrackId] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchArtist = async () => {
     try {
@@ -166,11 +170,36 @@ const Profile = () => {
     fetchArtist();
   }, []);
 
+  const handleDeleteTrack = async (trackId) => {
+    try {
+      setIsDeleting(true);
+      await TrackService.DeleteAsync(trackId);
+      message.success("Xóa bài hát thành công");
+      fetchArtist();
+    } catch (error) {
+      message.error("Lỗi khi xóa bài hát");
+    } finally {
+      setIsDeleting(false);
+      setDeletingTrackId(null);
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (deletingTrackId && !e.target.closest('.relative')) {
+        setDeletingTrackId(null);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [deletingTrackId]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex items-center justify-center">
-        <FontAwesomeIcon 
-          icon={faSpinner} 
+        <FontAwesomeIcon
+          icon={faSpinner}
           className="animate-spin text-4xl text-yellow-500"
         />
       </div>
@@ -211,7 +240,7 @@ const Profile = () => {
                 <FontAwesomeIcon icon={faEdit} className="w-5 h-5" />
               </button>
             </div>
-            
+
             <div className="mb-4">
               <h1 className="text-4xl font-bold mb-2">{artistData.name}</h1>
               <p className="text-gray-300 max-w-2xl">{artistData.bio}</p>
@@ -222,20 +251,18 @@ const Profile = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-3 gap-4 mb-8">
-          <button 
+          <button
             onClick={() => setSelectedSection('tracks')}
-            className={`rounded-lg border p-4 text-left transition-colors ${
-              selectedSection === 'tracks' 
-                ? 'border-yellow-500 bg-yellow-500/10' 
+            className={`rounded-lg border p-4 text-left transition-colors ${selectedSection === 'tracks'
+                ? 'border-yellow-500 bg-yellow-500/10'
                 : 'border-gray-700 bg-gray-800 hover:bg-gray-700'
-            }`}
+              }`}
           >
             <div className="flex items-center">
-              <FontAwesomeIcon 
+              <FontAwesomeIcon
                 icon={faMusic}
-                className={`h-8 w-8 mr-3 ${
-                  selectedSection === 'tracks' ? 'text-yellow-500' : 'text-blue-500'
-                }`}
+                className={`h-8 w-8 mr-3 ${selectedSection === 'tracks' ? 'text-yellow-500' : 'text-blue-500'
+                  }`}
               />
               <div>
                 <p className="text-sm text-gray-400">Bài hát</p>
@@ -246,18 +273,16 @@ const Profile = () => {
 
           <button
             onClick={() => setSelectedSection('albums')}
-            className={`rounded-lg border p-4 text-left transition-colors ${
-              selectedSection === 'albums' 
-                ? 'border-yellow-500 bg-yellow-500/10' 
+            className={`rounded-lg border p-4 text-left transition-colors ${selectedSection === 'albums'
+                ? 'border-yellow-500 bg-yellow-500/10'
                 : 'border-gray-700 bg-gray-800 hover:bg-gray-700'
-            }`}
+              }`}
           >
             <div className="flex items-center">
-              <FontAwesomeIcon 
+              <FontAwesomeIcon
                 icon={faUser}
-                className={`h-8 w-8 mr-3 ${
-                  selectedSection === 'albums' ? 'text-yellow-500' : 'text-purple-500'
-                }`}
+                className={`h-8 w-8 mr-3 ${selectedSection === 'albums' ? 'text-yellow-500' : 'text-purple-500'
+                  }`}
               />
               <div>
                 <p className="text-sm text-gray-400">Albums</p>
@@ -268,7 +293,7 @@ const Profile = () => {
 
           <Card>
             <CardContent className="flex items-center">
-              <FontAwesomeIcon 
+              <FontAwesomeIcon
                 icon={faClock}
                 className="h-8 w-8 text-green-500 mr-3"
               />
@@ -291,22 +316,46 @@ const Profile = () => {
           <h2 className="text-2xl font-bold mb-4">
             {selectedSection === 'tracks' ? 'Danh sách bài hát' : 'Danh sách album'}
           </h2>
-          
+
           {selectedSection === 'tracks' ? (
             <div className="grid gap-4">
               {artistData.tracks.map((track) => (
                 <Card key={track.trackId}>
-                  <CardContent className="flex items-center">
-                    <div className="h-16 w-16 rounded overflow-hidden mr-4">
-                      <img
-                        src={track.trackImage}
-                        alt={track.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
+                  <CardContent className="flex items-center relative">
+                    {/* Phần hiện tại của card */}
                     <div className="flex-1">
                       <h3 className="font-semibold text-lg">{track.title}</h3>
                       <p className="text-gray-400">{track.duration}</p>
+                    </div>
+
+                    {/* Nút 3 chấm và dropdown menu */}
+                    <div className="relative ml-4">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeletingTrackId(track.trackId);
+                        }}
+                        className="text-gray-400 hover:text-white p-2 rounded-full hover:bg-gray-700 transition-colors"
+                      >
+                        <FontAwesomeIcon icon={faEllipsisV} />
+                      </button>
+
+                      {deletingTrackId === track.trackId && (
+                        <div className="absolute right-0 top-8 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-50 w-32">
+                          <button
+                            onClick={() => handleDeleteTrack(track.trackId)}
+                            disabled={isDeleting}
+                            className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center gap-2 text-red-500"
+                          >
+                            {isDeleting ? (
+                              <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+                            ) : (
+                              <FontAwesomeIcon icon={faTrash} />
+                            )}
+                            Xóa
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -333,7 +382,7 @@ const Profile = () => {
                     <div className="flex-1">
                       <h3 className="font-semibold text-lg">{album.title}</h3>
                       <p className="text-gray-400">
-                        {album.releaseDate && new Date(album.releaseDate).toLocaleDateString('vi-VN')} • 
+                        {album.releaseDate && new Date(album.releaseDate).toLocaleDateString('vi-VN')} •
                         {album.tracks?.length || 0} bài hát
                       </p>
                     </div>

@@ -10,6 +10,15 @@ const TrackService = {
       throw error; // Ném lỗi để có thể xử lý bên ngoài
     }
   },
+  GetRandomTracks: async () => {
+    try {
+      const response = await http.get('Track/GetRandomTracks');
+      return response.data;  
+    } catch (error) {
+      console.error('Có lỗi xảy ra khi lấy thông tin bài hát:', error);
+      throw error; // Ném lỗi để có thể xử lý bên ngoài
+    }
+  },
   GetFavoriteTrack: async (id) => {
     try {
       const userInfo = JSON.parse(localStorage.getItem('user'));

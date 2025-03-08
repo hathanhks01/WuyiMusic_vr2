@@ -5,6 +5,8 @@ import { Routes, Route } from 'react-router-dom';
 import Discover from '../pages/User/discover';
 import LikedList from '../pages/User/LikedList';
 import Ranking from '../pages/Admin/Chart';
+import AllTracks from '../pages/User/AllTracks';
+import AllAlbums from '../pages/User/AllAlbums';
 import SearchComponent from '../pages/User/SearchComponent';
 
 const MainContent = () => {
@@ -15,7 +17,9 @@ const MainContent = () => {
                 <Route path="/Discover" element={<Discover />} />
                 <Route path="/Favorites" element={<LikedList />} />
                 <Route path="/Ranking" element={<Ranking />} />
-                <Route path='/searchComponenet' element={<SearchComponent />} />           
+                <Route path='/searchComponenet' element={<SearchComponent />} /> 
+                <Route path="/all-tracks" element={<AllTracks />} />  
+                <Route path="/all-albums" element={<AllAlbums />} />            
             </Routes>
             <style>
                 {`
